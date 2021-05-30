@@ -89,7 +89,7 @@ int main(void)
         // Index buffer object
         IndexBuffer ib(indices, 6);
 
-        //                          left  right  bottom  top   near   far
+        //                          left  right  bottom  top     near   far
         glm::mat4 proj = glm::ortho(0.0f, 800.0f, 0.0f, 600.0f, -1.0f, 1.0f);
         glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 
@@ -114,7 +114,8 @@ int main(void)
         ImGui::CreateContext();
         ImGui::StyleColorsDark();
 
-        glm::vec3 translation(200, 200, 0); // Moving the quad
+        glm::vec3 translationA(200, 200, 0); // Moving the quad
+        glm::vec3 translationB(400, 200, 0); 
 
         const char* glsl_version = "#version 330";
         ImGui_ImplGlfw_InitForOpenGL(window, true);
@@ -137,31 +138,30 @@ int main(void)
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
 
-            glm::mat4 model = glm::translate(glm::mat4(1.0f), translation);
-            glm::mat4 mvp = proj * view * model; // Matrix multiplication in reverse order because of column major ordering in memory
 
-            shader.Bind();
-            shader.SetUniform4f("u_Color", r, 0.3f, 0.8f, 1.0f);
-            shader.SetUniformMat4f("u_MVP", mvp);
+            
+            {
+                glm::mat4 model = glm::translate(glm::mat4(1.0f), translationA);
+                glm::mat4 mvp = proj * view * model; // Matrix multiplication in reverse order because of column major ordering in memory
+                shader.Bind();
+                shader.SetUniformMat4f("u_MVP", mvp);
+                renderer.Draw(va, ib, shader);
+            }
 
-            va.Bind();
-            ib.Bind();
-
-            renderer.Draw(va, ib, shader);
-
-            if (r > 1.0f)
-                increment = -0.05f;
-            else if (r < 0.0f)
-                increment = 0.05f;
-
-            r += increment;
-
+            {
+                glm::mat4 model = glm::translate(glm::mat4(1.0f), translationB);
+                glm::mat4 mvp = proj * view * model; // Matrix multiplication in reverse order because of column major ordering in memory
+                shader.Bind();
+                shader.SetUniformMat4f("u_MVP", mvp);
+                renderer.Draw(va, ib, shader);
+            }
 
             { // Creating a window to modify the positon of our quad
 
                 ImGui::Begin("Hello, world!");
 
-                ImGui::SliderFloat2("Translation", &translation.x, 0.0f, 800.0f); 
+                ImGui::SliderFloat2("Translation A", &translationA.x, 0.0f, 800.0f);
+                ImGui::SliderFloat2("Translation B", &translationB.x, 0.0f, 800.0f);
               
                 ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
                 ImGui::End();
