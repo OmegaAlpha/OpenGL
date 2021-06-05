@@ -70,7 +70,11 @@ int main(void)
         ImGui::CreateContext();
         ImGui::StyleColorsDark();
 
-        test::TestClearColor test;
+        test::Test* currentTest = nullptr;
+        test::TestMenu* testMenu = new test::TestMenu(currentTest);
+        currentTest = testMenu;
+
+        testMenu->RegisterTest<test::TestClearColor>("Clear Color");
 
         const char* glsl_version = "#version 330";
         ImGui_ImplGlfw_InitForOpenGL(window, true);
@@ -78,15 +82,27 @@ int main(void)
 
         while (!glfwWindowShouldClose(window))
         {
+            GLCallV(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
             renderer.Clear();
 
-            test.OnUpdate(0.0f);
-            test.OnRender();
 
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
-            test.OnImGuiRender();
+
+            if (currentTest)
+            {
+                currentTest->OnUpdate(0.0f);
+                currentTest->OnRender();
+                ImGui::Begin("Test");
+                if (currentTest != testMenu && ImGui::Button("<-"))
+                {
+                    delete currentTest;
+                    currentTest = testMenu;
+                }
+                currentTest->OnImGuiRender();
+                ImGui::End();
+            }
             ImGui::Render();
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
@@ -94,6 +110,10 @@ int main(void)
 
             glfwPollEvents();
         }
+
+        if (currentTest != testMenu)
+            delete testMenu;
+        delete currentTest;
 
     } // OpenGL comedy
 
