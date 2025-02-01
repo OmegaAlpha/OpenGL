@@ -1,13 +1,13 @@
 #include "Renderer.h"
-#include "TestTexture2D.h"
+#include "TestTriangle.h"
 
 #include "imgui/imgui.h"
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
-test::TestTexture2D::TestTexture2D()
-    :m_Proj(glm::ortho(0.0f, 800.0f, 0.0f, 600.0f, -1.0f, 1.0f)), 
+test::TestTriangle::TestTriangle()
+    :m_Proj(glm::ortho(0.0f, 800.0f, 0.0f, 600.0f, -1.0f, 1.0f)),
     m_View(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f))),
     m_TranslationA(200, 200, 0), m_TranslationB(400, 200, 0)
 {
@@ -16,13 +16,11 @@ test::TestTexture2D::TestTexture2D()
         -100.0f, -75.0f, 0.0f, 0.0f,// 0 positions, texture coords
          100.0f, -75.0f, 1.0f, 0.0f,// 1
          100.0f,  75.0f, 1.0f, 1.0f,// 2
-        -100.0f,  75.0f, 0.0f, 1.0f,// 3
     };
 
     // These are the indices of our positions in the order we want to use to draw a rectangle
     unsigned int indices[] = {
-        0, 1, 2,
-        2, 3, 0
+        0, 1, 2
     };
 
 
@@ -49,21 +47,21 @@ test::TestTexture2D::TestTexture2D()
     m_Shader->Bind();
     m_Shader->SetUniform4f("u_Color", 0.8f, 0.3f, 0.8f, 1.0f);
 
-    m_Texture = std::make_unique<Texture>("res/textures/NIKE.png");
-    
-    m_Shader->SetUniform1i("u_Texture", 0);
+    //m_Texture = std::make_unique<Texture>("res/textures/NIKE.png");
+
+    //m_Shader->SetUniform1i("u_Texture", 0);
 }
 
-test::TestTexture2D::~TestTexture2D(){
+test::TestTriangle::~TestTriangle() {
 }
 
-void test::TestTexture2D::OnUpdate(float deltaTime){
+void test::TestTriangle::OnUpdate(float deltaTime) {
 }
 
-void test::TestTexture2D::OnRender()
+void test::TestTriangle::OnRender()
 {
-	GLCallV(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
-	GLCallV(glClear(GL_COLOR_BUFFER_BIT));
+    GLCallV(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
+    GLCallV(glClear(GL_COLOR_BUFFER_BIT));
 
     Renderer renderer;
 
@@ -87,7 +85,7 @@ void test::TestTexture2D::OnRender()
     }
 }
 
-void test::TestTexture2D::OnImGuiRender()
+void test::TestTriangle::OnImGuiRender()
 {
     ImGui::SliderFloat2("Translation A", &m_TranslationA.x, 0.0f, 800.0f);
     ImGui::SliderFloat2("Translation B", &m_TranslationB.x, 0.0f, 800.0f);
