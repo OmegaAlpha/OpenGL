@@ -77,6 +77,7 @@ int main(void)
 
         testMenu->RegisterTest<test::TestClearColor>("Clear Color");
         testMenu->RegisterTest<test::TestTexture2D>("2D Texture");
+        testMenu->RegisterTest<test::TestTriangle>("2D Texture");
 
         const char* glsl_version = "#version 330";
         ImGui_ImplGlfw_InitForOpenGL(window, true);
