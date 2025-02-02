@@ -24,6 +24,7 @@
 
 #include "tests/TestClearColor.h"
 #include "tests/TestTexture2D.h"
+#include "tests/TestTriangle.h"
 
 
 int main(void)
@@ -77,7 +78,7 @@ int main(void)
 
         testMenu->RegisterTest<test::TestClearColor>("Clear Color");
         testMenu->RegisterTest<test::TestTexture2D>("2D Texture");
-        testMenu->RegisterTest<test::TestTriangle>("2D Texture");
+        testMenu->RegisterTest<test::TestTriangle>("Triangle");
 
         const char* glsl_version = "#version 330";
         ImGui_ImplGlfw_InitForOpenGL(window, true);
