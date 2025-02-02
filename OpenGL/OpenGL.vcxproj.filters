@@ -16,7 +16,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="res\shader\Basic.shader" />
+    <None Include="res\shader\Basic.shader">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\shader\FragColor.shader">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Application.cpp">

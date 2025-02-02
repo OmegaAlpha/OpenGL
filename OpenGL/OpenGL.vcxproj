@@ -173,6 +173,7 @@
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="res\shader\Basic.shader" />
+    <None Include="res\shader\FragColor.shader" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Shader.cpp" />
