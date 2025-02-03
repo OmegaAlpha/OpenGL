@@ -10,11 +10,11 @@ test::TestTriangle::TestTriangle()
     :m_Proj(glm::ortho(0.0f, 1.0f, 0.0f, 1.0f, -1.0f, 1.0f)),
     m_View(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f)))
 {
-    // These are the vertex data we need to draw a rectangle from two triangles
+    // These are the needed to draw a triangle with vertex colors
     float vertices[] = {
-       -0.5f, -0.5f, 0.0f, // bottom left
-        0.5f, -0.5f, 0.0f, // bottom right
-        0.0f,  0.5f, 0.0f  // top middle
+       -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, // bottom left (blue)
+        0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom right (green)
+        0.0f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f  // top middle (red)
     };
     // These are the indices of our positions in the order we want to use to draw a rectangle
     unsigned int indices[] = {
@@ -22,18 +22,16 @@ test::TestTriangle::TestTriangle()
     };
 
 
-    //GLCallV(glEnable(GL_BLEND));
-    //GLCallV(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-
     // Vertex Array object
     m_VAO = std::make_unique<VertexArray>();
 
     // Vertex buffer object
-    m_VBO = std::make_unique<VertexBuffer>(vertices, 3 * 3 * sizeof(float)); // 3 vertices with 3 floats per vertex
+    m_VBO = std::make_unique<VertexBuffer>(vertices, 3 * 6 * sizeof(float)); // 3 vertices with 6 floats per vertex
 
     // Creating the layout for our data
     VertexBufferLayout layout;
-    layout.Push<float>(3); // Our data consists of 3 floats
+    layout.Push<float>(3); // Our data consists of 3 floats for position
+    layout.Push<float>(3); // and then another 3 floats for color
     m_VAO->AddBuffer(*m_VBO, layout);
 
     // Index buffer object
@@ -52,7 +50,7 @@ void test::TestTriangle::OnUpdate(float deltaTime) {
 
 void test::TestTriangle::OnRender()
 {
-    GLCallV(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
+    GLCallV(glClearColor(0.5f, 0.5f, 0.5f, 1.0f));
     GLCallV(glClear(GL_COLOR_BUFFER_BIT));
 
     Renderer renderer;
@@ -67,6 +65,5 @@ void test::TestTriangle::OnRender()
 
 void test::TestTriangle::OnImGuiRender()
 {
-
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 }
