@@ -3,11 +3,14 @@
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aColor;
 
+uniform mat4 u_MVP; // Transformation matrix
+
 out vec3 vertexColor; // This will be interpolated
 
 void main()
 {
-    gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
+	// Apply transformation matrix to vertex position
+    gl_Position = u_MVP * vec4(aPos, 1.0);
 	vertexColor = aColor; // Pass color to fragment shader
 }
 
