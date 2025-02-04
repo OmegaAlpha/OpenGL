@@ -84,8 +84,14 @@ int main(void)
         ImGui_ImplGlfw_InitForOpenGL(window, true);
         ImGui_ImplOpenGL3_Init(glsl_version);
 
+        float lastFrameTime = 0.0f;
+
         while (!glfwWindowShouldClose(window))
         {
+            float currentTime = glfwGetTime();
+            float deltaTime = currentTime -  lastFrameTime;
+            lastFrameTime = currentTime;
+
             GLCallV(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
             renderer.Clear();
 
@@ -96,7 +102,7 @@ int main(void)
 
             if (currentTest)
             {
-                currentTest->OnUpdate(0.0f);
+                currentTest->OnUpdate(deltaTime);
                 currentTest->OnRender();
                 ImGui::Begin("Test");
                 if (currentTest != testMenu && ImGui::Button("<-"))

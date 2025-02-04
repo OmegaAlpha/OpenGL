@@ -1,4 +1,4 @@
-#include "Renderer.h"
+﻿#include "Renderer.h"
 #include "TestTriangle.h"
 
 #include "imgui/imgui.h"
@@ -7,8 +7,9 @@
 #include "glm/gtc/matrix_transform.hpp"
 
 test::TestTriangle::TestTriangle()
-    :m_Proj(glm::ortho(0.0f, 1.0f, 0.0f, 1.0f, -1.0f, 1.0f)),
-    m_View(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f)))
+    :m_Proj(glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f)),
+    m_View(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f))),
+    m_Spinning(false), m_Translation(0), m_Rotation(0)
 {
     // These are the needed to draw a triangle with vertex colors
     float vertices[] = {
@@ -21,6 +22,14 @@ test::TestTriangle::TestTriangle()
         0, 1, 2
     };
 
+    // Example vertices for the triangle
+    glm::vec3 v0(-0.5f, -0.5f, 0.0f);
+    glm::vec3 v1(0.5f, -0.5f, 0.0f);
+    glm::vec3 v2(0.0f, 0.5f, 0.0f);
+
+    glm::vec3 center = (v0 + v1 + v2) / 3.0f;
+
+    m_Translation = center;
 
     // Vertex Array object
     m_VAO = std::make_unique<VertexArray>();
@@ -46,6 +55,13 @@ test::TestTriangle::~TestTriangle() {
 }
 
 void test::TestTriangle::OnUpdate(float deltaTime) {
+    if (m_Spinning) {
+        m_Rotation += 1.5f * deltaTime; // Adjust speed (1.5 radians per second)
+
+        if (m_Rotation > glm::two_pi<float>()) {
+            m_Rotation -= glm::two_pi<float>(); // Keep within [0, 2pi]
+        }
+    }
 }
 
 void test::TestTriangle::OnRender()
@@ -55,15 +71,26 @@ void test::TestTriangle::OnRender()
 
     Renderer renderer;
 
-    glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
-    glm::mat4 mvp = m_Proj * m_View * model; // Matrix multiplication in reverse order because of column major ordering in memory
+
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, m_Translation);
+    model = glm::rotate(model, m_Rotation, glm::vec3(0.0f, 0.0f, 1.0f));
+    model = glm::translate(model, -m_Translation);
+
+    glm::mat4 mvp = m_Proj * m_View * model;
     m_Shader->Bind();
+    m_Shader->SetUniformMat4f("u_MVP", mvp);
     renderer.Draw(*m_VAO, *m_IBO, *m_Shader);
-
-
 }
 
 void test::TestTriangle::OnImGuiRender()
 {
+    // Create a button that toggles the spinning flag.
+    if (ImGui::Button("Toggle Spin")) {
+        m_Spinning = !m_Spinning;
+    }
+
+    // Optionally, display the current state:
+    ImGui::Text("Triangle spinning: %s", m_Spinning ? "Yes" : "No");
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 }
