@@ -17,8 +17,10 @@ namespace test {
 		~TestTexture2D();
 
 		void OnUpdate(float deltaTime) override;
+		void OnWindowResize(int width, int height) override;
 		void OnRender() override;
 		void OnImGuiRender() override;
+		void UpdateProjectionMatrix();
 	private:
 		std::unique_ptr <VertexArray> m_VAO;
 		std::unique_ptr <VertexBuffer> m_VBO;
@@ -28,6 +30,7 @@ namespace test {
 
 		glm::mat4 m_Proj, m_View;
 		glm::vec3 m_TranslationA, m_TranslationB;
+		int m_WindowWidth, m_WindowHeight;
 
 	};
 }

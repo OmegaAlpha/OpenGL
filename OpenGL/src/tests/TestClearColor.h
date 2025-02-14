@@ -11,8 +11,10 @@ namespace test {
 		~TestClearColor();
 
 		void OnUpdate(float deltaTime) override;
+		void OnWindowResize(int width, int height) override;
 		void OnRender() override;
 		void OnImGuiRender() override;
+		
 	private:
 		float m_ClearColor[4];
 	};

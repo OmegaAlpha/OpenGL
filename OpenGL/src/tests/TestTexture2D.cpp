@@ -60,6 +60,17 @@ test::TestTexture2D::~TestTexture2D(){
 void test::TestTexture2D::OnUpdate(float deltaTime){
 }
 
+void test::TestTexture2D::OnWindowResize(int width, int height) {
+    GLCallV(glViewport(0, 0, width, height));
+    m_WindowWidth = width;
+    m_WindowHeight = height;
+    UpdateProjectionMatrix();
+}
+
+void test::TestTexture2D::UpdateProjectionMatrix() {
+    m_Proj = glm::ortho(0.0f, static_cast<float>(m_WindowWidth), 0.0f, static_cast<float>(m_WindowHeight), -1.0f, 1.0f);
+}
+
 void test::TestTexture2D::OnRender()
 {
 	GLCallV(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
