@@ -12,6 +12,9 @@ test::TestClearColor::~TestClearColor(){
 
 void test::TestClearColor::OnUpdate(float deltaTime){
 }
+void test::TestClearColor::OnWindowResize(int width, int height) {
+
+}
 
 void test::TestClearColor::OnRender(){
 	GLCallV(glClearColor(m_ClearColor[0], m_ClearColor[1], m_ClearColor[2], m_ClearColor[3]));

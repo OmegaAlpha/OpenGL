@@ -1,16 +1,24 @@
 ﻿#include "Renderer.h"
 #include "TestTriangle.h"
 
+#include <GLFW/glfw3.h>
+
 #include "imgui/imgui.h"
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
 test::TestTriangle::TestTriangle()
-    :m_Proj(glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f)),
+    :m_Proj(),
     m_View(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f))),
-    m_Spinning(false), m_Translation(0), m_Rotation(0)
+    m_Spinning(false), m_Translation(0), m_Rotation(0), 
+    m_Scale(1.0f), m_MoveAngle(0.0f), m_MoveRadius(0.5f),
+    m_Position(0.0f, 0.0f, 0.0f), m_WindowWidth(0), m_WindowHeight(0)
 {
+    GLFWwindow* window = glfwGetCurrentContext();
+    glfwGetWindowSize(window, &m_WindowWidth, &m_WindowHeight);
+    UpdateProjectionMatrix();
+
     // These are the needed to draw a triangle with vertex colors
     float vertices[] = {
        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, // bottom left (blue)
@@ -30,6 +38,7 @@ test::TestTriangle::TestTriangle()
     glm::vec3 center = (v0 + v1 + v2) / 3.0f;
 
     m_Translation = center;
+    m_Position = center;
 
     // Vertex Array object
     m_VAO = std::make_unique<VertexArray>();
@@ -62,6 +71,29 @@ void test::TestTriangle::OnUpdate(float deltaTime) {
             m_Rotation -= glm::two_pi<float>(); // Keep within [0, 2pi]
         }
     }
+
+    if (m_Moving) {
+        m_MoveAngle += 1.0f * deltaTime; // Move at steady speed
+        if (m_MoveAngle > glm::two_pi<float>()) {
+            m_MoveAngle -= glm::two_pi<float>(); // Keep within [0, 2π]
+        }
+
+        // Compute circular movement
+        m_Position.x = m_MoveRadius * cos(m_MoveAngle);
+        m_Position.y = m_MoveRadius * sin(m_MoveAngle);
+    }
+}
+
+void test::TestTriangle::OnWindowResize(int width, int height) {
+    m_WindowWidth = width;
+    m_WindowHeight = height;
+    GLCallV(glViewport(0, 0, width, height));
+    UpdateProjectionMatrix();
+}
+
+void test::TestTriangle::UpdateProjectionMatrix() {
+    float aspectRatio = static_cast<float>(m_WindowWidth) / m_WindowHeight;
+    m_Proj = glm::ortho(-1.0f * aspectRatio, 1.0f * aspectRatio, -1.0f, 1.0f, -1.0f, 1.0f);
 }
 
 void test::TestTriangle::OnRender()
@@ -73,11 +105,14 @@ void test::TestTriangle::OnRender()
 
 
     glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, m_Position);
     model = glm::translate(model, m_Translation);
-    model = glm::rotate(model, m_Rotation, glm::vec3(0.0f, 0.0f, 1.0f));
+    model = glm::scale(model, glm::vec3(m_Scale, m_Scale, 1.0f)); // Scale
+    model = glm::rotate(model, m_Rotation, glm::vec3(0.0f, 0.0f, 1.0f)); // Rotate
     model = glm::translate(model, -m_Translation);
 
     glm::mat4 mvp = m_Proj * m_View * model;
+
     m_Shader->Bind();
     m_Shader->SetUniformMat4f("u_MVP", mvp);
     renderer.Draw(*m_VAO, *m_IBO, *m_Shader);
@@ -90,7 +125,16 @@ void test::TestTriangle::OnImGuiRender()
         m_Spinning = !m_Spinning;
     }
 
-    // Optionally, display the current state:
-    ImGui::Text("Triangle spinning: %s", m_Spinning ? "Yes" : "No");
+    if (ImGui::Button("Toggle Move")) {
+        m_Moving = !m_Moving;
+    }
+
+    ImGui::Text("Spinning: %s", m_Spinning ? "Yes" : "No");
+    ImGui::Text("Moving: %s", m_Moving ? "Yes" : "No");
+    ImGui::Text("Rotation: %.2f degrees", glm::degrees(m_Rotation));
+
+    ImGui::SliderFloat("Scale", &m_Scale, 0.1f, 3.0f, "%.2f");
+    ImGui::SliderFloat("Move Radius", &m_MoveRadius, 0.1f, 1.0f, "%.2f");
+
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 }
