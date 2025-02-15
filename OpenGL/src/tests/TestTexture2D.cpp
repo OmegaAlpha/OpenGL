@@ -49,7 +49,7 @@ test::TestTexture2D::TestTexture2D()
     m_Shader->Bind();
     m_Shader->SetUniform4f("u_Color", 0.8f, 0.3f, 0.8f, 1.0f);
 
-    m_Texture = std::make_unique<Texture>("res/textures/NIKE.png");
+    m_Texture = std::make_unique<Texture>("res/textures/DVD_video.png");
     
     m_Shader->SetUniform1i("u_Texture", 0);
 }
