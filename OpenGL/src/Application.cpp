@@ -34,30 +34,52 @@ static void FramebufferSizeCallback(GLFWwindow* window, int width, int height) {
     }
 }
 
-void ShowMainDockSpace(){
-    ImGuiWindowFlags window_flags =  ImGuiWindowFlags_NoDocking;
+void ShowDockSpaces()
+{
     ImGuiViewport* viewport = ImGui::GetMainViewport();
+
+    ImGuiWindowFlags dockspace_flags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar |
+        ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
+        ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus |
+        ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoBackground;
 
     ImGui::SetNextWindowPos(viewport->Pos);
     ImGui::SetNextWindowSize(viewport->Size);
     ImGui::SetNextWindowViewport(viewport->ID);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 
-    window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse |
-        ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
-        ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoBackground;
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+    ImGui::Begin("Main Dockspace", nullptr, dockspace_flags);
+    ImGui::PopStyleVar();
 
-    ImGui::Begin("DockSpace Window", nullptr, window_flags);
-    ImGui::PopStyleVar(2);
+    ImGuiID dockspace_id = ImGui::GetID("MainDockspace");
+    ImGui::DockSpace(dockspace_id, ImVec2(0, 0), ImGuiDockNodeFlags_NoDockingInCentralNode | ImGuiDockNodeFlags_PassthruCentralNode);
 
-    ImGuiID dockspace_id = ImGui::GetID("MyDockspace");
+    // --- Step 1: Define the Dock Layout ---
+    static bool first_time = true;
+    if (first_time)
+    {
+        first_time = false;
+        ImGui::DockBuilderRemoveNode(dockspace_id); // Clear previous layout
+        ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
+        ImGui::DockBuilderSetNodeSize(dockspace_id, viewport->Size);
 
-    ImGui::DockSpace(dockspace_id, ImVec2(0, 0),
-        ImGuiDockNodeFlags_PassthruCentralNode);
+        // Split into left, right, and bottom docks
+        ImGuiID dock_left, dock_right, dock_bottom, dock_main;
+        dock_main = dockspace_id;  // The main central space
 
-    ImGui::End();
+        ImGui::DockBuilderSplitNode(dock_main, ImGuiDir_Left, 0.2f, &dock_left, &dock_main);
+        ImGui::DockBuilderSplitNode(dock_main, ImGuiDir_Right, 0.3f, &dock_right, &dock_main);
+        ImGui::DockBuilderSplitNode(dock_main, ImGuiDir_Down, 0.25f, &dock_bottom, &dock_main);
+
+        // Dock UI panels to these sections
+        ImGui::DockBuilderDockWindow("Test", dock_right);
+        ImGui::DockBuilderFinish(dockspace_id);
+    }
+
+    ImGui::End(); // End DockSpace window
 }
+
+
 
 int main(void)
 {
@@ -75,8 +97,8 @@ int main(void)
 
     /* Create a windowed mode window and its OpenGL context */
 
-    int width = 800;
-    int height = 600;
+    int width = 1400;
+    int height = 800;
     window = glfwCreateWindow(width, height, "OpenGL Test Application", NULL, NULL);
     if (!window)
     {
@@ -141,7 +163,7 @@ int main(void)
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
 
-            ShowMainDockSpace();  // Create the dockable areas
+            ShowDockSpaces();  // Create the dockable areas
 
             if (currentTest)
             {
