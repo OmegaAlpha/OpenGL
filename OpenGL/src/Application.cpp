@@ -52,33 +52,36 @@ void ShowDockSpaces()
     ImGui::PopStyleVar();
 
     ImGuiID dockspace_id = ImGui::GetID("MainDockspace");
-    ImGui::DockSpace(dockspace_id, ImVec2(0, 0), ImGuiDockNodeFlags_NoDockingInCentralNode | ImGuiDockNodeFlags_PassthruCentralNode);
+    ImGui::DockSpace(dockspace_id, ImVec2(0, 0), ImGuiDockNodeFlags_None);
 
-    // --- Step 1: Define the Dock Layout ---
     static bool first_time = true;
     if (first_time)
     {
         first_time = false;
-        ImGui::DockBuilderRemoveNode(dockspace_id); // Clear previous layout
+
+        ImGui::DockBuilderRemoveNode(dockspace_id);
         ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
         ImGui::DockBuilderSetNodeSize(dockspace_id, viewport->Size);
 
-        // Split into left, right, and bottom docks
         ImGuiID dock_left, dock_right, dock_bottom, dock_main;
-        dock_main = dockspace_id;  // The main central space
+        dock_main = dockspace_id;
 
         ImGui::DockBuilderSplitNode(dock_main, ImGuiDir_Left, 0.2f, &dock_left, &dock_main);
         ImGui::DockBuilderSplitNode(dock_main, ImGuiDir_Right, 0.3f, &dock_right, &dock_main);
         ImGui::DockBuilderSplitNode(dock_main, ImGuiDir_Down, 0.25f, &dock_bottom, &dock_main);
 
-        // Dock UI panels to these sections
+        // Dock windows in correct areas
         ImGui::DockBuilderDockWindow("Test", dock_right);
+        ImGui::DockBuilderDockWindow("Scene", dock_main);
+
+        // Optional: Hide tab bar if only one window in the dock
+        ImGui::DockBuilderGetNode(dock_main)->LocalFlags |= ImGuiDockNodeFlags_AutoHideTabBar;
+
         ImGui::DockBuilderFinish(dockspace_id);
     }
 
-    ImGui::End(); // End DockSpace window
+    ImGui::End();
 }
-
 
 
 int main(void)
@@ -122,6 +125,7 @@ int main(void)
         GLCallV(glEnable(GL_BLEND));
         GLCallV(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
+        Framebuffer framebuffer(800, 600);  // Create an instance
         Renderer renderer;
 
         IMGUI_CHECKVERSION();
@@ -155,9 +159,10 @@ int main(void)
             float deltaTime = currentTime -  lastFrameTime;
             lastFrameTime = currentTime;
 
-            GLCallV(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
-            renderer.Clear();
+            framebuffer.Bind();  // Render to framebuffe
 
+            GLCallV(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
+            renderer.Clear(); // Clearing color buffer and depth buffer
 
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();
@@ -169,6 +174,7 @@ int main(void)
             {
                 currentTest->OnUpdate(deltaTime);
                 currentTest->OnRender();
+
                 ImGui::Begin("Test");
                 if (currentTest != testMenu && ImGui::Button("<-"))
                 {
@@ -179,6 +185,16 @@ int main(void)
                 currentTest->OnImGuiRender();
                 ImGui::End();
             }
+
+            framebuffer.Unbind();  // Back to default framebuffer
+
+            // Render ImGui window
+            ImGui::Begin("Scene");
+            ImVec2 viewportSize = ImGui::GetContentRegionAvail();
+            framebuffer.Resize((int)viewportSize.x, (int)viewportSize.y);
+            ImGui::Image((ImTextureID)(intptr_t)framebuffer.GetTextureID(), viewportSize, ImVec2(0, 1), ImVec2(1, 0));
+            ImGui::End();
+
             ImGui::Render();
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
@@ -191,6 +207,7 @@ int main(void)
                 glfwMakeContextCurrent(backup_current_context);
             }
             glfwSwapBuffers(window);
+            renderer.Clear(); // Fixes issue with docking and color lingering on edges of glfw_window
 
             glfwPollEvents();
         }
