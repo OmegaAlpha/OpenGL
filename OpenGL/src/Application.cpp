@@ -27,12 +27,12 @@
 #include "tests/TestTexture2D.h"
 #include "tests/TestTriangle.h"
 
-static void FramebufferSizeCallback(GLFWwindow* window, int width, int height) {
-    test::Test* currentTest = static_cast<test::Test*>(glfwGetWindowUserPointer(window));
-    if (currentTest) {
-        currentTest->OnWindowResize(width, height);
-    }
-}
+//static void FramebufferSizeCallback(GLFWwindow* window, int width, int height) {
+//    test::Test* currentTest = static_cast<test::Test*>(glfwGetWindowUserPointer(window));
+//    if (currentTest) {
+//        currentTest->OnWindowResize(width, height);
+//    }
+//}
 
 void ShowDockSpaces()
 {
@@ -112,7 +112,7 @@ int main(void)
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
 
-    glfwSwapInterval(0); // 1 means v-sync on
+    glfwSwapInterval(1); // 1 means v-sync on
 
     if (glewInit() != GLEW_OK)
         std::cout << "Failed to initialize GLEW!" << std::endl;
@@ -125,7 +125,7 @@ int main(void)
         GLCallV(glEnable(GL_BLEND));
         GLCallV(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
-        Framebuffer framebuffer(800, 600);  // Create an instance
+        Framebuffer framebuffer(1400, 800);  // Create an instance
         Renderer renderer;
 
         IMGUI_CHECKVERSION();
@@ -141,7 +141,7 @@ int main(void)
         test::TestMenu* testMenu = new test::TestMenu(currentTest);
         currentTest = testMenu;
 
-        glfwSetFramebufferSizeCallback(window, FramebufferSizeCallback);
+        //glfwSetFramebufferSizeCallback(window, FramebufferSizeCallback);
 
         testMenu->RegisterTest<test::TestClearColor>("Clear Color");
         testMenu->RegisterTest<test::TestTexture2D>("2D Texture");
@@ -189,11 +189,18 @@ int main(void)
             framebuffer.Unbind();  // Back to default framebuffer
 
             // Render ImGui window
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
             ImGui::Begin("Scene");
+            // Retrieve the available size inside the ImGui viewport
             ImVec2 viewportSize = ImGui::GetContentRegionAvail();
+            // Update Projection Matrix
+            currentTest->OnWindowResize((int)viewportSize.x, (int)viewportSize.y);
+
             framebuffer.Resize((int)viewportSize.x, (int)viewportSize.y);
+    
             ImGui::Image((ImTextureID)(intptr_t)framebuffer.GetTextureID(), viewportSize, ImVec2(0, 1), ImVec2(1, 0));
             ImGui::End();
+            ImGui::PopStyleVar();
 
             ImGui::Render();
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
