@@ -4,6 +4,8 @@
 #include <GLFW/glfw3.h>
 
 #include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"  // Needed for FindWindowByName
+
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
@@ -15,10 +17,15 @@ test::TestTriangle::TestTriangle()
     m_Scale(1.0f), m_MoveAngle(0.0f), m_MoveRadius(0.5f),
     m_Position(0.0f, 0.0f, 0.0f), m_WindowWidth(0), m_WindowHeight(0)
 {
-    GLFWwindow* window = glfwGetCurrentContext();
-    glfwGetWindowSize(window, &m_WindowWidth, &m_WindowHeight);
-    UpdateProjectionMatrix();
+    const char* windowName = "Scene";
+    ImGuiWindow* imguiWindow = ImGui::FindWindowByName(windowName);
+    if (imguiWindow) {
+        m_WindowWidth = static_cast<int>(imguiWindow->Size.x);
+        m_WindowHeight = static_cast<int>(imguiWindow->Size.y);
 
+        // Update projection matrix
+        UpdateProjectionMatrix();
+    }
     // These are the needed to draw a triangle with vertex colors
     float vertices[] = {
        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, // bottom left (blue)
