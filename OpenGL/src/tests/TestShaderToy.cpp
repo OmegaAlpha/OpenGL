@@ -1,0 +1,127 @@
+#include "Renderer.h"
+#include "TestShaderToy.h"
+
+#include "imgui/imgui.h"
+#include <imgui/imgui_internal.h>
+#include "imgui/TextEditor.h"
+
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+
+
+test::TestShaderToy::TestShaderToy()
+    :m_Proj(), 
+    m_View(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f))),
+    m_TranslationA(0.0f, 0.0f, 0), m_FrameCount(0)
+{
+    // Initialize the text editor
+    m_Editor.SetLanguageDefinition(TextEditor::LanguageDefinition::GLSL());
+
+    // These are the vertex data we need to draw a rectangle from two triangles
+    float positions[] = {
+        -1.0f, -1.0f,   0.0f, 0.0f,// 0 positions, texture coords
+         1.0f, -1.0f,   1.0f, 0.0f,// 1
+         1.0f,  1.0f,   1.0f, 1.0f,// 2
+        -1.0f,  1.0f,   0.0f, 1.0f,// 3
+    };
+
+    // These are the indices of our positions in the order we want to use to draw a rectangle
+    unsigned int indices[] = {
+        0, 1, 2,
+        2, 3, 0
+    };
+
+
+    GLCallV(glEnable(GL_BLEND));
+    GLCallV(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+
+    // Vertex Array object
+    m_VAO = std::make_unique<VertexArray>();
+
+    // Vertex buffer object
+    m_VBO = std::make_unique<VertexBuffer>(positions, 4 * 4 * sizeof(float)); // 4 vertices with 4 floats per vertex
+
+    // Creating the layout for our data
+    VertexBufferLayout layout;
+    layout.Push<float>(2); // Our data consists of 2 floats (position coordinates)
+    layout.Push<float>(2); // And 2 more floats (texture coordinates)
+    m_VAO->AddBuffer(*m_VBO, layout);
+
+    // Index buffer object
+    m_IBO = std::make_unique<IndexBuffer>(indices, 6);
+
+    // Shaders
+    //m_Shader = std::make_unique<Shader>("res/shader/Shadertoy/Raymarching_primitives.shader");
+    //m_Shader = std::make_unique<Shader>("res/shader/Shadertoy/Raytracer.shader");
+    //m_Shader = std::make_unique<Shader>("res/shader/Shadertoy/uv_test.shader");
+    //m_Shader = std::make_unique<Shader>("res/shader/Shadertoy/w10.shader");
+    //m_Shader = std::make_unique<Shader>("res/shader/Shadertoy/Unreal_intro.shader");
+    m_Shader = std::make_unique<Shader>("res/shader/Shadertoy/Segmented_spiral.shader");
+    //m_Shader = std::make_unique<Shader>("res/shader/Shadertoy/VolumetricIntegration.shader");
+    m_Shader->Bind();
+
+    //m_Editor.SetText(m_Shader->);
+}
+
+test::TestShaderToy::~TestShaderToy(){
+}
+
+void test::TestShaderToy::OnUpdate(float deltaTime){
+}
+
+void test::TestShaderToy::OnWindowResize(int width, int height) {
+    GLCallV(glViewport(0, 0, width, height));
+    m_WindowWidth = width;
+    m_WindowHeight = height;
+}
+
+void test::TestShaderToy::UpdateProjectionMatrix() {
+
+}
+
+void test::TestShaderToy::OnMouseMove(float x, float y)
+{
+    m_MouseX = x;
+    m_MouseY = y;
+}
+
+
+void test::TestShaderToy::OnRender()
+{
+	GLCallV(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
+	GLCallV(glClear(GL_COLOR_BUFFER_BIT));
+
+    Renderer renderer;
+
+    m_Shader->Bind();
+    m_Shader->SetUniform1f("iTime", glfwGetTime());
+    m_Shader->SetUniform1i("iFrame", m_FrameCount);
+    m_Shader->SetUniform2f("iResolution", (float) m_WindowWidth, (float)m_WindowHeight);
+    if (mouseState.leftPressed && ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+        m_Shader->SetUniform4f("iMouse", m_MouseX, m_MouseY, mouseState.x, mouseState.y);
+    }
+    else m_Shader->SetUniform4f("iMouse", m_MouseX, m_MouseY, 0.0f, 0.0f);
+    
+    renderer.Draw(*m_VAO, *m_IBO, *m_Shader);
+    m_FrameCount++;
+}
+
+void test::TestShaderToy::OnImGuiRender()
+{
+    ImGui::SliderFloat2("Translation A", &m_TranslationA.x, 0.0f, 1.0f);
+
+    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+    ImGui::End();
+
+    ImGui::Begin("Shader Editor");
+
+    // Display text editor widget
+    m_Editor.Render("GLSL Shader Editor");
+
+    // Recompile shader if button pressed
+    if (ImGui::Button("Recompile Shader")) {
+        m_FragmentShaderSource = m_Editor.GetText();
+        //CompileAndApplyShader(m_FragmentShaderSource);
+    }
+
+}
