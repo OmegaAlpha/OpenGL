@@ -41,7 +41,9 @@ std::tuple<std::string, std::string> Shader::ParseShader(const std::string& file
         }
         else
         {
-            ss[(int)type] << line << '\n';
+            if (type != ShaderType::NONE) {
+                ss[(int)type] << line << '\n';
+            }
         }
 
     }
@@ -57,7 +59,7 @@ unsigned int Shader::CompileShader(unsigned int type, const std::string& source)
     GLCallV(glCompileShader(id));
 
     int result;
-    GLCallV(glGetShaderiv(id, GL_COMPILE_STATUS, &result);)
+    GLCallV(glGetShaderiv(id, GL_COMPILE_STATUS, &result));
         if (result == false)
         {
             int length;
@@ -110,6 +112,11 @@ void Shader::SetUniform1i(const std::string& name, int value)
 void Shader::SetUniform1f(const std::string& name, float value)
 {
     GLCallV(glUniform1f(GetUniformLocation(name), value));
+}
+
+void Shader::SetUniform2f(const std::string& name, float v0, float v1)
+{
+    GLCallV(glUniform2f(GetUniformLocation(name), v0, v1));
 }
 
 void Shader::SetUniform4f(const std::string& name, float v0, float v1, float f0, float f1)

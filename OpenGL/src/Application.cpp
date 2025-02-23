@@ -14,6 +14,7 @@
 #include "VertexArray.h"
 #include "Shader.h"
 #include "Texture.h"
+#include "MouseInput.h"
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
@@ -26,13 +27,8 @@
 #include "tests/TestClearColor.h"
 #include "tests/TestTexture2D.h"
 #include "tests/TestTriangle.h"
+#include "tests/TestShaderToy.h"
 
-//static void FramebufferSizeCallback(GLFWwindow* window, int width, int height) {
-//    test::Test* currentTest = static_cast<test::Test*>(glfwGetWindowUserPointer(window));
-//    if (currentTest) {
-//        currentTest->OnWindowResize(width, height);
-//    }
-//}
 
 void ShowDockSpaces()
 {
@@ -146,12 +142,16 @@ int main(void)
         testMenu->RegisterTest<test::TestClearColor>("Clear Color");
         testMenu->RegisterTest<test::TestTexture2D>("2D Texture");
         testMenu->RegisterTest<test::TestTriangle>("Triangle");
+        testMenu->RegisterTest<test::TestShaderToy>("ShaderToy");
 
         const char* glsl_version = "#version 330";
         ImGui_ImplGlfw_InitForOpenGL(window, true);
         ImGui_ImplOpenGL3_Init(glsl_version);
 
         float lastFrameTime = 0.0f;
+        int frameCount = 0;
+
+        MouseInput mouse;
 
         while (!glfwWindowShouldClose(window))
         {
@@ -162,7 +162,8 @@ int main(void)
             framebuffer.Bind();  // Render to framebuffe
 
             GLCallV(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
-            renderer.Clear(); // Clearing color buffer and depth buffer
+            GLCallV(glClear(GL_COLOR_BUFFER_BIT));
+            //renderer.Clear(); // Clearing color buffer and depth buffer
 
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();
@@ -181,7 +182,6 @@ int main(void)
                     delete currentTest;
                     currentTest = testMenu;
                 }
-                glfwSetWindowUserPointer(window, currentTest); // setter en pointer til den testen vi er på
                 currentTest->OnImGuiRender();
                 ImGui::End();
             }
@@ -191,14 +191,47 @@ int main(void)
             // Render ImGui window
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
             ImGui::Begin("Scene");
+            // Get the starting position of the viewport (before drawing the image)
+            ImVec2 viewportPanelPos = ImGui::GetCursorScreenPos();
+
             // Retrieve the available size inside the ImGui viewport
             ImVec2 viewportSize = ImGui::GetContentRegionAvail();
-            // Update Projection Matrix
-            currentTest->OnWindowResize((int)viewportSize.x, (int)viewportSize.y);
 
-            framebuffer.Resize((int)viewportSize.x, (int)viewportSize.y);
-    
+            // Update projection and viewport size based on the available region
+            currentTest->OnWindowResize(viewportSize.x, viewportSize.y);
+            framebuffer.Resize(viewportSize.x, viewportSize.y);
+            GLCallV(glViewport(0, 0, (int)viewportSize.x, (int)viewportSize.y));
+
+            // Draw the OpenGL rendered texture (the viewport image)
             ImGui::Image((ImTextureID)(intptr_t)framebuffer.GetTextureID(), viewportSize, ImVec2(0, 1), ImVec2(1, 0));
+
+            // Now, get the global mouse position
+            ImVec2 mousePosGlobal = ImGui::GetIO().MousePos;
+
+            // Calculate the mouse position relative to the viewport
+            ImVec2 mousePosInViewport(mousePosGlobal.x - viewportPanelPos.x,
+                mousePosGlobal.y - viewportPanelPos.y);
+
+            // Check if the mouse is within the viewport bounds and print if it is
+            if (mousePosInViewport.x >= 0 && mousePosInViewport.y >= 0 &&
+                mousePosInViewport.x <= viewportSize.x && mousePosInViewport.y <= viewportSize.y)
+            {
+                if (ImGui::IsMouseDown(ImGuiMouseButton_Left) || ImGui::IsMouseDown(ImGuiMouseButton_Right)) {
+                    mouse.leftPressed = ImGui::IsMouseDown(ImGuiMouseButton_Left);
+                    mouse.rightPressed = ImGui::IsMouseDown(ImGuiMouseButton_Right);
+                    mouse.x = mousePosInViewport.x;
+                    mouse.y = mousePosInViewport.y;
+                    if (currentTest) {
+                        currentTest->OnMouseEvent(mouse);
+                    }
+                }
+                if (currentTest) {
+                     currentTest->OnMouseMove(mousePosInViewport.x, mousePosInViewport.y);
+                }
+                //printf("Mouse in viewport: (%.1f, %.1f)\n", mousePosInViewport.x, mousePosInViewport.y);
+                
+            }
+
             ImGui::End();
             ImGui::PopStyleVar();
 
@@ -213,10 +246,13 @@ int main(void)
                 ImGui::RenderPlatformWindowsDefault();
                 glfwMakeContextCurrent(backup_current_context);
             }
+
             glfwSwapBuffers(window);
             renderer.Clear(); // Fixes issue with docking and color lingering on edges of glfw_window
 
             glfwPollEvents();
+
+            frameCount++;
         }
 
         if (currentTest != testMenu)

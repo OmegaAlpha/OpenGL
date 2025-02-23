@@ -22,6 +22,33 @@
     <None Include="res\shader\FragColor.shader">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="res\shader\VertexColor.shader">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\shader\Shadertoy\New.shader">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\shader\Shadertoy\Raymarching_primitives.shader">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\shader\Shadertoy\Raytracer.shader">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\shader\Shadertoy\Segmented_spiral.shader">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\shader\Shadertoy\Unreal_intro.shader">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\shader\Shadertoy\uv_test.shader">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\shader\Shadertoy\w10.shader">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\shader\Shadertoy\VolumetricIntegration.shader">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Application.cpp">
@@ -85,6 +112,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\FrameBuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\vendor\imgui\TextEditor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tests\TestShaderToy.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -153,6 +186,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\FrameBuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vendor\imgui\TextEditor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tests\TestShaderToy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MouseInput.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
