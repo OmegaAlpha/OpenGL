@@ -14,7 +14,7 @@ void main(){
 #version 330 core
 in vec2 texCoord;
 uniform vec2 iMouse;
-uniform vec4 iResolution; // Typically vec2 in Shadertoy, but vec4 works if you use .xy
+uniform vec2 iResolution; 
 uniform float iTime;
 layout (location = 0) out vec4 fragColor;
 
