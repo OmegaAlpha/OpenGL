@@ -9,6 +9,12 @@
 #include "imgui/TextEditor.h"
 
 #include <memory>
+#include <vector>
+#include <string>
+#include <fstream>
+#include <sstream>
+#include <filesystem>
+
 
 namespace test {
 
@@ -24,12 +30,20 @@ namespace test {
 		void OnImGuiRender() override;
 		void UpdateProjectionMatrix();
 		void OnMouseMove(float x, float y) override;
+		void LoadShaderFiles(const std::string& directory);
+		void LoadShader(const std::string& shaderPath);
+		void ReloadShader();
+
 	private:
 		std::unique_ptr <VertexArray> m_VAO;
 		std::unique_ptr <VertexBuffer> m_VBO;
 		std::unique_ptr <IndexBuffer> m_IBO;
-		std::unique_ptr <Shader> m_Shader;
 		std::unique_ptr <Texture> m_Texture;
+
+		std::vector<std::string> m_ShaderFiles;
+		std::string m_SelectedShader;
+		std::string m_ShaderSource;
+		std::unique_ptr <Shader> m_Shader;
 
 		glm::mat4 m_Proj, m_View;
 		glm::vec3 m_TranslationA;
