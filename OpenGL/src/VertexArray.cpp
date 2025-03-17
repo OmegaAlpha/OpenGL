@@ -3,6 +3,7 @@
 #include "Renderer.h"
 
 VertexArray::VertexArray()
+	: m_RendererID(0) // Initialize to 0
 {
 	GLCallV(glGenVertexArrays(1, &m_RendererID));
 }
@@ -27,6 +28,7 @@ void VertexArray::AddBuffer(const VertexBuffer& vb, const VertexBufferLayout& la
 		GLCallV(glVertexAttribPointer(i, element.count, element.type, element.normalized, layout.GetStride(), (const void*)offset)); 
 		offset += element.count * VertexbufferElement::GetSizeOfType(element.type);
 	}
+	std::cout << "Stride: " << layout.GetStride() << std::endl;
 }
 
 void VertexArray::Bind() const

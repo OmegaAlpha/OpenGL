@@ -1,0 +1,71 @@
+#include "TestModelLoading.h"
+#include "imgui/imgui.h"
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include <glm/gtx/string_cast.hpp>
+
+namespace test {
+
+    TestModelLoading::TestModelLoading()
+        : m_Proj(glm::perspective(glm::radians(45.0f), 1400.0f / 800.0f, 0.1f, 100.0f)),
+        m_View(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -1.5f, -5.0f))),
+        m_Translation(0.0f, 0.0f, 0.0f), m_modelScale(1.0f),
+        m_ModelLoaded(false)
+    {
+        m_Model = std::make_unique<Model>("res/models/teapot.obj");
+        if (m_Model) {
+            m_ModelLoaded = true;
+        }
+
+        m_Shader = std::make_unique<Shader>("res/shader/model_shader.shader");
+        if (m_Shader) {
+            m_Shader->Bind();
+        }
+    }
+
+    TestModelLoading::~TestModelLoading() {}
+
+    void TestModelLoading::OnUpdate(float deltaTime) {
+        // Update any animations or transformations here
+    }
+
+    void TestModelLoading::OnRender() {
+        GLCallV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+
+        if (m_ModelLoaded) {
+
+            glm::mat4 m_modelMatrix = glm::mat4(1.0f);  // Identity matrix
+            
+
+            m_Shader->Bind();
+
+ 
+
+            m_modelMatrix = glm::translate(m_modelMatrix, m_Translation);
+            m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(m_modelScale));
+            m_Shader->SetUniformMat4f("u_Model", m_modelMatrix);
+            m_Shader->SetUniformMat4f("u_View", m_View);
+            m_Shader->SetUniformMat4f("u_Projection", m_Proj);
+
+            m_Shader->SetUniform3f("u_Color", 1.0f, 1.0f, 1.0f);
+
+            //std::cout << glm::to_string(m_modelMatrix) << std::endl; DEBUG print modelmatrix
+            //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe on
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Wireframe off
+            m_Model->Draw(*m_Shader);
+        }
+    }
+
+    void TestModelLoading::OnImGuiRender() {
+        ImGui::Text("Model Loading Test");
+        if (m_ModelLoaded) {
+            ImGui::Text("Model loaded successfully!");
+        }
+        else {
+            ImGui::Text("Failed to load model.");
+        }
+        ImGui::SliderFloat("Scale", &m_modelScale, 0.1f, 100.0f); // Scale from 0.1x to 100x
+        ImGui::SliderFloat3("Translation", &m_Translation.x, -5.0f, 5.0f);
+    }
+
+}
