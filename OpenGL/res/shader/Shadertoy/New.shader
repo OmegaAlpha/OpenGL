@@ -29,5 +29,7 @@ void main() {
     vec3 col = 0.5 + 0.5*cos(iTime+uv.xyx+vec3(0,2,4));
 
     // Output to screen
-    fragColor = vec4(uv,0.0,1.0);
+    fragColor = vec4(col,1.0);
 }
+
+

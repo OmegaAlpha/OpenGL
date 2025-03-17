@@ -6,6 +6,8 @@
 #include <fstream>
 #include <string>
 #include <tuple>
+#include <map>
+#include <Windows.h>
 
 #include "Renderer.h"
 #include "VertexBuffer.h"
@@ -28,6 +30,7 @@
 #include "tests/TestTexture2D.h"
 #include "tests/TestTriangle.h"
 #include "tests/TestShaderToy.h"
+#include "tests/TestModelLoading.h"
 
 
 void ShowDockSpaces()
@@ -78,6 +81,86 @@ void ShowDockSpaces()
 
     ImGui::End();
 }
+
+bool UpdateUIScaling(float scale)
+{
+    ImGuiIO& io = ImGui::GetIO();
+
+    ImGui_ImplOpenGL3_DestroyDeviceObjects();
+
+    // Setup Dear ImGui style
+    ImGuiStyle& style = ImGui::GetStyle();
+    ImGuiStyle styleold = style; // Backup colors
+    style = ImGuiStyle(); // IMPORTANT: ScaleAllSizes will change the original size, so we should reset all style config
+    style.WindowBorderSize = 1.0f;
+    style.ChildBorderSize = 1.0f;
+    style.PopupBorderSize = 1.0f;
+    style.FrameBorderSize = 1.0f;
+    style.TabBorderSize = 1.0f;
+    style.WindowRounding = 0.0f;
+    style.ChildRounding = 0.0f;
+    style.PopupRounding = 0.0f;
+    style.FrameRounding = 0.0f;
+    style.ScrollbarRounding = 0.0f;
+    style.GrabRounding = 0.0f;
+    style.TabRounding = 0.0f;
+
+    style.ScaleAllSizes(scale);
+    CopyMemory(style.Colors, styleold.Colors, sizeof(style.Colors)); // Restore colors (needs Windows.h)
+
+    io.Fonts->Clear();
+
+    // Load Fonts
+    // - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use ImGui::PushFont()/PopFont() to select them.
+    // - AddFontFromFileTTF() will return the ImFont* so you can store it if you need to select the font among multiple.
+    // - If the file cannot be loaded, the function will return NULL. Please handle those errors in your application (e.g. use an assertion, or display an error and quit).
+    // - The fonts will be rasterized at a given size (w/ oversampling) and stored into a texture when calling ImFontAtlas::Build()/GetTexDataAsXXXX(), which ImGui_ImplXXXX_NewFrame below will call.
+    // - Read 'docs/FONTS.md' for more instructions and details.
+    // - Remember that in C/C++ if you want to include a backslash \ in a string literal you need to write a double backslash \\ !
+    //io.Fonts->AddFontDefault();
+    //io.Fonts->AddFontFromFileTTF("../../misc/fonts/Roboto-Medium.ttf", 16.0f);
+    //io.Fonts->AddFontFromFileTTF("../../misc/fonts/Cousine-Regular.ttf", 15.0f);
+    //io.Fonts->AddFontFromFileTTF("../../misc/fonts/DroidSans.ttf", 16.0f);
+    //io.Fonts->AddFontFromFileTTF("../../misc/fonts/ProggyTiny.ttf", 10.0f);
+    //ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
+    //IM_ASSERT(font != NULL);
+
+
+    // Default font
+    //ImFontConfig fontConfig;
+    //fontConfig.SizePixels = baseFontSize * newDpiScale;
+
+    // Add the default font with the new configuration
+    //io.Fonts->AddFontDefault(&fontConfig);
+
+
+
+    ImFont* font = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\msyh.ttc", 16.0f * scale);
+    IM_ASSERT(font != NULL);
+    if (font == NULL)
+        return false;
+
+    return ImGui_ImplOpenGL3_CreateDeviceObjects();
+}
+
+
+void DpiScaleCallback(GLFWwindow* window, float xscale, float yscale) {
+    float dpiScale = (xscale + yscale) * 0.5f;
+
+    UpdateUIScaling(dpiScale > 1.0f ? dpiScale : 1.0f);
+}
+
+void FramebufferSizeCallback(GLFWwindow* window, int width, int height) {
+
+
+    // Get DPI scale from GLFW
+    float xscale, yscale;
+    glfwGetWindowContentScale(window, &xscale, &yscale);
+    float dpiScale = (xscale + yscale) * 0.5f; // Average scale factor
+
+    UpdateUIScaling(dpiScale > 1.0f ? dpiScale : 1.0f);
+}
+
 
 
 int main(void)
@@ -137,16 +220,25 @@ int main(void)
         test::TestMenu* testMenu = new test::TestMenu(currentTest);
         currentTest = testMenu;
 
-        //glfwSetFramebufferSizeCallback(window, FramebufferSizeCallback);
+        glfwSetFramebufferSizeCallback(window, FramebufferSizeCallback);
+        glfwSetWindowContentScaleCallback(window, DpiScaleCallback);
 
         testMenu->RegisterTest<test::TestClearColor>("Clear Color");
         testMenu->RegisterTest<test::TestTexture2D>("2D Texture");
         testMenu->RegisterTest<test::TestTriangle>("Triangle");
         testMenu->RegisterTest<test::TestShaderToy>("ShaderToy");
+        testMenu->RegisterTest<test::TestModelLoading>("Test Model Loading");
 
         const char* glsl_version = "#version 330";
         ImGui_ImplGlfw_InitForOpenGL(window, true);
         ImGui_ImplOpenGL3_Init(glsl_version);
+
+        // Get DPI scale from GLFW
+        float xscale, yscale;
+        glfwGetWindowContentScale(window, &xscale, &yscale);
+        float dpiScale = (xscale + yscale) * 0.5f; // Average scale factor
+
+        UpdateUIScaling(dpiScale > 1.0f ? dpiScale : 1.0f); // Avoid floor to 0.0f scaling
 
         float lastFrameTime = 0.0f;
         int frameCount = 0;

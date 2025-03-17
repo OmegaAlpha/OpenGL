@@ -180,8 +180,12 @@ void test::TestShaderToy::OnImGuiRender()
 
     ImGui::Begin("Shader Editor");
 
+
+    ImGui::BeginChild("ShaderEditorContent", ImVec2(0, -40), true); // Leave space for button
     // Display text editor widget
     m_Editor.Render("GLSL Shader Editor");
+
+    ImGui::EndChild(); // Ends the scrollable editor content
 
     // Recompile shader if button pressed
     if (ImGui::Button("Recompile Shader")) {
