@@ -17,6 +17,8 @@ namespace test {
         bool m_ModelLoaded;
         float m_modelScale;
 
+        int m_WindowWidth, m_WindowHeight;
+
     public:
         TestModelLoading();
         ~TestModelLoading();
@@ -24,6 +26,8 @@ namespace test {
         void OnUpdate(float deltaTime) override;
         void OnRender() override;
         void OnImGuiRender() override;
+        void OnWindowResize(int width, int height) override;
+        void UpdateProjectionMatrix();
     };
 
 }

@@ -1,5 +1,7 @@
 #include "TestModelLoading.h"
 #include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"  // Needed for FindWindowByName
+
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include <glm/gtx/string_cast.hpp>
@@ -7,11 +9,19 @@
 namespace test {
 
     TestModelLoading::TestModelLoading()
-        : m_Proj(glm::perspective(glm::radians(45.0f), 1400.0f / 800.0f, 0.1f, 100.0f)),
-        m_View(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -1.5f, -5.0f))),
+        : m_View(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -1.5f, -6.0f))),
         m_Translation(0.0f, 0.0f, 0.0f), m_modelScale(1.0f),
         m_ModelLoaded(false)
     {
+        const char* windowName = "Scene";
+        ImGuiWindow* imguiWindow = ImGui::FindWindowByName(windowName);
+        if (imguiWindow) {
+            m_WindowWidth = static_cast<int>(imguiWindow->Size.x);
+            m_WindowHeight = static_cast<int>(imguiWindow->Size.y);
+
+            // Update projection matrix
+            UpdateProjectionMatrix();
+        }
         m_Model = std::make_unique<Model>("res/models/teapot.obj");
         if (m_Model) {
             m_ModelLoaded = true;
@@ -35,11 +45,8 @@ namespace test {
         if (m_ModelLoaded) {
 
             glm::mat4 m_modelMatrix = glm::mat4(1.0f);  // Identity matrix
-            
 
             m_Shader->Bind();
-
- 
 
             m_modelMatrix = glm::translate(m_modelMatrix, m_Translation);
             m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(m_modelScale));
@@ -51,7 +58,7 @@ namespace test {
 
             //std::cout << glm::to_string(m_modelMatrix) << std::endl; DEBUG print modelmatrix
             //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe on
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Wireframe off
+            //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Wireframe off
             m_Model->Draw(*m_Shader);
         }
     }
@@ -64,8 +71,25 @@ namespace test {
         else {
             ImGui::Text("Failed to load model.");
         }
-        ImGui::SliderFloat("Scale", &m_modelScale, 0.1f, 100.0f); // Scale from 0.1x to 100x
+        ImGui::SliderFloat("Scale", &m_modelScale, 0.1f, 5.0f); // Scale from 0.1x to 100x
         ImGui::SliderFloat3("Translation", &m_Translation.x, -5.0f, 5.0f);
+        static bool wireframe = false;
+        if (ImGui::Checkbox("Wireframe Mode", &wireframe)) {
+            glPolygonMode(GL_FRONT_AND_BACK, wireframe ? GL_LINE : GL_FILL);
+        }
+    }
+
+    void TestModelLoading::OnWindowResize(int width, int height){
+        m_WindowWidth = width;
+        m_WindowHeight = height;
+        GLCallV(glViewport(0, 0, width, height));
+        UpdateProjectionMatrix();
+    }
+
+    void TestModelLoading::UpdateProjectionMatrix(){
+        float aspectRatio = static_cast<float>(m_WindowWidth) / m_WindowHeight;
+        m_Proj = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 100.0f);
+
     }
 
 }
