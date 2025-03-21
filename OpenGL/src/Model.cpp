@@ -15,6 +15,21 @@ Model::Model(const std::string& path) {
     }
 }
 
+
+void Model::LoadModel(const std::string& path) {
+    // Clear existing data and load new model
+    m_Meshes.clear();
+    std::vector<Vertex> vertices;
+    std::vector<unsigned int> indices;
+
+    if (OBJLoader::LoadOBJ(path, vertices, indices)) {
+        m_Meshes.push_back(std::make_unique<Mesh>(vertices, indices));
+    }
+    else {
+        std::cerr << "Failed to load model: " << path << std::endl;
+    }
+}
+
 void Model::Draw(Shader& shader) {
     for (auto& mesh : m_Meshes) {
         mesh->Draw(shader);  // Use `->` since we now store unique pointers

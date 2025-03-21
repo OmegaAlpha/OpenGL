@@ -1,6 +1,7 @@
 #include "TestModelLoading.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"  // Needed for FindWindowByName
+#include "ImGuiFileDialog/ImGuiFileDialog.h"
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
@@ -22,7 +23,7 @@ namespace test {
             // Update projection matrix
             UpdateProjectionMatrix();
         }
-        m_Model = std::make_unique<Model>("res/models/teapot.obj");
+        m_Model = std::make_unique<Model>("res/models/suzanne_blender.obj");
         if (m_Model) {
             m_ModelLoaded = true;
         }
@@ -70,6 +71,18 @@ namespace test {
         }
         else {
             ImGui::Text("Failed to load model.");
+        }
+        if (ImGui::Button("Load Model")) {
+            ImGuiFileDialog::Instance()->OpenDialog("ChooseFile", "Select OBJ File", ".obj", IGFD::FileDialogConfig("."));
+        }
+
+        // Display file dialog
+        if (ImGuiFileDialog::Instance()->Display("ChooseFile")) {
+            if (ImGuiFileDialog::Instance()->IsOk()) {
+                std::string filePath = ImGuiFileDialog::Instance()->GetFilePathName();
+                m_Model->LoadModel(filePath);
+            }
+            ImGuiFileDialog::Instance()->Close();
         }
         ImGui::SliderFloat("Scale", &m_modelScale, 0.1f, 5.0f); // Scale from 0.1x to 100x
         ImGui::SliderFloat3("Translation", &m_Translation.x, -5.0f, 5.0f);
