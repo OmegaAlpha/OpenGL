@@ -24,6 +24,7 @@ namespace test {
         ~TestModelLoading();
 
         void OnUpdate(float deltaTime) override;
+        void LoadModel(const std::string& path);
         void OnRender() override;
         void OnImGuiRender() override;
         void OnWindowResize(int width, int height) override;

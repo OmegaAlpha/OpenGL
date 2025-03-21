@@ -143,7 +143,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>src;src\vendor;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;src\vendor;src\vendor\imgui</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>NotSet</SubSystem>
@@ -160,7 +160,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>src;src\vendor;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;src\vendor;src\vendor\imgui</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>NotSet</SubSystem>
@@ -200,6 +200,7 @@
     <ClCompile Include="src\tests\TestShaderToy.cpp" />
     <ClCompile Include="src\tests\TestTexture2D.cpp" />
     <ClCompile Include="src\tests\TestTriangle.cpp" />
+    <ClCompile Include="src\vendor\ImGuiFileDialog\ImGuiFileDialog.cpp" />
     <ClCompile Include="src\vendor\imgui\imgui.cpp" />
     <ClCompile Include="src\vendor\imgui\imgui_demo.cpp" />
     <ClCompile Include="src\vendor\imgui\imgui_draw.cpp" />
@@ -230,6 +231,7 @@
     <ClInclude Include="src\tests\TestShaderToy.h" />
     <ClInclude Include="src\tests\TestTexture2D.h" />
     <ClInclude Include="src\tests\TestTriangle.h" />
+    <ClInclude Include="src\vendor\ImGuiFileDialog\ImGuiFileDialog.h" />
     <ClInclude Include="src\vendor\imgui\imconfig.h" />
     <ClInclude Include="src\vendor\imgui\imgui.h" />
     <ClInclude Include="src\vendor\imgui\TextEditor.h" />

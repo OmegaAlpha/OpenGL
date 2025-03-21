@@ -8,7 +8,8 @@
 
 class Model {
 public:
-    Model(const std::string& path);  // Constructor to load a model from a file
+    Model(const std::string& path); // Constructor to load a model from a file
+    void LoadModel(const std::string& path); // Remove old model and load a new model
     void Draw(Shader& shader);       // Draw method for rendering
 
 private:
