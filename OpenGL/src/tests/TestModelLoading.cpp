@@ -23,7 +23,7 @@ namespace test {
             // Update projection matrix
             UpdateProjectionMatrix();
         }
-        m_Model = std::make_unique<Model>("res/models/suzanne_blender.obj");
+        m_Model = std::make_unique<Model>("res/models/teapot.obj");
         if (m_Model) {
             m_ModelLoaded = true;
         }
