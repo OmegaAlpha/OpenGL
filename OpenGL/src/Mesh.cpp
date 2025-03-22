@@ -23,8 +23,8 @@ void Mesh::SetupMesh() {
     VertexBufferLayout layout;
     layout.Push<float>(3); // Position: 3 floats
     // Uncomment the next two lines if your Vertex struct has normals and texture coordinates.
-    // layout.Push<float>(3); // Normal: 3 floats
-    // layout.Push<float>(2); // TexCoords: 2 floats
+    layout.Push<float>(3); // Normal: 3 floats
+    layout.Push<float>(2); // TexCoords: 2 floats
 
     // Add the vertex buffer to the VAO with the layout
     m_VAO->AddBuffer(*m_VBO, layout);
