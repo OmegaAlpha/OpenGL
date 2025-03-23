@@ -144,7 +144,7 @@ void test::TestShaderToy::ReloadShader()
 void test::TestShaderToy::OnRender()
 {
 	GLCallV(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
-	GLCallV(glClear(GL_COLOR_BUFFER_BIT));
+    GLCallV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
     Renderer renderer;
 

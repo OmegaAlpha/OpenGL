@@ -28,6 +28,7 @@ test::TestTexture2D::TestTexture2D()
 
     GLCallV(glEnable(GL_BLEND));
     GLCallV(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+    glDisable(GL_DEPTH_TEST); // Disable z-checking for this test (makes the textures draw in the same layer)
 
     // Vertex Array object
     m_VAO = std::make_unique<VertexArray>();
@@ -74,7 +75,7 @@ void test::TestTexture2D::UpdateProjectionMatrix() {
 void test::TestTexture2D::OnRender()
 {
 	GLCallV(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
-	GLCallV(glClear(GL_COLOR_BUFFER_BIT));
+    GLCallV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
     Renderer renderer;
 
