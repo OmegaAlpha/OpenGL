@@ -12,7 +12,7 @@ namespace test {
     TestModelLoading::TestModelLoading()
         : m_View(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -1.5f, -6.0f))),
         m_Translation(0.0f, 0.0f, 0.0f), m_modelScale(1.0f),
-        m_ModelLoaded(false)
+        m_ModelLoaded(false), m_Spinning(false)
     {
         const char* windowName = "Scene";
         ImGuiWindow* imguiWindow = ImGui::FindWindowByName(windowName);
@@ -38,12 +38,17 @@ namespace test {
     }
 
     TestModelLoading::~TestModelLoading() {
-        glDisable(GL_DEPTH_TEST); // Disable z-checking for the other tests
+        //glDisable(GL_DEPTH_TEST); // Disable z-checking for the other tests
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Turn back on fill mode for the other tests
     }
 
     void TestModelLoading::OnUpdate(float deltaTime) {
-        // Update any animations or transformations here
+        if (m_Spinning) {
+            m_modelRotationAngle += deltaTime * glm::radians(20.0f); // Rotates 20 degrees per second
+            if (m_modelRotationAngle > glm::two_pi<float>()) {
+                m_modelRotationAngle -= glm::two_pi<float>(); // Keep within [0, 2pi]
+            }
+        }
     }
 
     void TestModelLoading::OnRender() {
@@ -55,7 +60,12 @@ namespace test {
 
             m_Shader->Bind();
 
+            
+            glm::vec3 center = glm::vec3(0.0f, 0.0f, 0.0f); // Change if needed
+            m_modelMatrix = glm::translate(glm::mat4(1.0f), center);
             m_modelMatrix = glm::translate(m_modelMatrix, m_Translation);
+            m_modelMatrix = glm::rotate(m_modelMatrix, m_modelRotationAngle, glm::vec3(0.0f, 1.0f, 0.0f));
+            m_modelMatrix = glm::translate(m_modelMatrix, -center);
             m_modelMatrix = glm::scale(m_modelMatrix, glm::vec3(m_modelScale));
             m_Shader->SetUniformMat4f("u_Model", m_modelMatrix);
             m_Shader->SetUniformMat4f("u_View", m_View);
@@ -94,12 +104,23 @@ namespace test {
             }
             ImGuiFileDialog::Instance()->Close();
         }
-        ImGui::SliderFloat("Scale", &m_modelScale, 0.1f, 5.0f); // Scale from 0.1x to 100x
+        // Create a button that toggles the spinning flag.
+        if (ImGui::Button("Toggle Spin")) {
+            m_Spinning = !m_Spinning;
+        }
+
+        ImGui::Text("Spinning: %s", m_Spinning ? "Yes" : "No");
+
+        ImGui::SliderFloat("Scale", &m_modelScale, 0.01f, 10.0f); // Scale from 0.1x to 100x
         ImGui::SliderFloat3("Translation", &m_Translation.x, -5.0f, 5.0f);
         static bool wireframe = false;
         if (ImGui::Checkbox("Wireframe Mode", &wireframe)) {
             glPolygonMode(GL_FRONT_AND_BACK, wireframe ? GL_LINE : GL_FILL);
         }
+
+        ImGui::Text("Rotation: %.2f degrees", glm::degrees(m_modelRotationAngle));
+
+        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
     }
 
     void TestModelLoading::OnWindowResize(int width, int height){

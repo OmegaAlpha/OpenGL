@@ -106,7 +106,7 @@ void test::TestTriangle::UpdateProjectionMatrix() {
 void test::TestTriangle::OnRender()
 {
     GLCallV(glClearColor(0.5f, 0.5f, 0.5f, 1.0f));
-    GLCallV(glClear(GL_COLOR_BUFFER_BIT));
+    GLCallV(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)); // We need to clear both the color buffer and depth buffer
 
     Renderer renderer;
 
