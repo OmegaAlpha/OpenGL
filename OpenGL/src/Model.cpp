@@ -6,7 +6,7 @@ Model::Model(const std::string& path) {
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
 
-    if (OBJLoader::LoadOBJ(path, vertices, indices)) {
+    if (OBJLoader::LoadOBJ(path, vertices, indices, true, false)) {
         // Create and store the Mesh object as a unique pointer
         m_Meshes.push_back(std::make_unique<Mesh>(vertices, indices));
     }
@@ -22,7 +22,7 @@ void Model::LoadModel(const std::string& path) {
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
 
-    if (OBJLoader::LoadOBJ(path, vertices, indices)) {
+    if (OBJLoader::LoadOBJ(path, vertices, indices, true, false)) {
         m_Meshes.push_back(std::make_unique<Mesh>(vertices, indices));
     }
     else {

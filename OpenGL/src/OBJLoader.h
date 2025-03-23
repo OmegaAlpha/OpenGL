@@ -6,5 +6,5 @@
 
 class OBJLoader {
 public:
-    static bool LoadOBJ(const std::string& filePath, std::vector<Vertex>& vertices, std::vector<unsigned int>& indices);
+    static bool LoadOBJ(const std::string& filePath, std::vector<Vertex>& vertices, std::vector<unsigned int>& indices, bool computeFaceNormals, bool computeVertexNormals);
 };

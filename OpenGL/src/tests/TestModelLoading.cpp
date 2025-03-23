@@ -32,9 +32,15 @@ namespace test {
         if (m_Shader) {
             m_Shader->Bind();
         }
+
+        glEnable(GL_DEPTH_TEST); // Enable z-checking
+        glDepthFunc(GL_LESS);    // draw closest on top (default)
     }
 
-    TestModelLoading::~TestModelLoading() {}
+    TestModelLoading::~TestModelLoading() {
+        glDisable(GL_DEPTH_TEST); // Disable z-checking for the other tests
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Turn back on fill mode for the other tests
+    }
 
     void TestModelLoading::OnUpdate(float deltaTime) {
         // Update any animations or transformations here
@@ -56,10 +62,14 @@ namespace test {
             m_Shader->SetUniformMat4f("u_Projection", m_Proj);
 
             m_Shader->SetUniform3f("u_Color", 1.0f, 1.0f, 1.0f);
+            m_Shader->SetUniform3f("lightPos", 10.0f, 10.0f, 10.0f);
+            m_Shader->SetUniform3f("lightColor", 1.0f, 1.0f, 1.0f);
+            m_Shader->SetUniform3f("objectColor", 0.6f, 0.6f, 0.6f); // Example color
 
             //std::cout << glm::to_string(m_modelMatrix) << std::endl; DEBUG print modelmatrix
             //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe on
             //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Wireframe off
+
             m_Model->Draw(*m_Shader);
         }
     }
