@@ -34,8 +34,7 @@ struct VertexEqual {
         return a.Position == b.Position && a.Normal == b.Normal && a.TexCoords == b.TexCoords;
     }
 };
-
-bool OBJLoader::LoadOBJ(const std::string& path, std::vector<Vertex>& vertices, std::vector<unsigned int>& indices) {
+bool OBJLoader::LoadOBJ(const std::string& path, std::vector<Vertex>& vertices, std::vector<unsigned int>& indices, bool computeFaceNormals, bool computeVertexNormals) {
     std::vector<glm::vec3> temp_positions;
     std::vector<glm::vec3> temp_normals;
     std::vector<glm::vec2> temp_texCoords;
@@ -48,24 +47,9 @@ bool OBJLoader::LoadOBJ(const std::string& path, std::vector<Vertex>& vertices, 
         return false;
     }
 
-    // Estimate file size and reserve memory accordingly
-    file.seekg(0, std::ios::end);
-    size_t fileSize = file.tellg();
-    file.seekg(0, std::ios::beg);
-
-    size_t estimatedVertices = fileSize / 50;
-    size_t estimatedFaces = fileSize / 60;
-
-    temp_positions.reserve(estimatedVertices);
-    temp_normals.reserve(estimatedVertices);
-    temp_texCoords.reserve(estimatedVertices);
-    vertices.reserve(estimatedVertices);
-    indices.reserve(estimatedFaces * 3);  // Assume mostly triangles
-
     std::string line;
     while (std::getline(file, line)) {
         if (line.empty()) continue;
-
         std::istringstream ss(line);
         std::string type;
         ss >> type;
@@ -73,20 +57,19 @@ bool OBJLoader::LoadOBJ(const std::string& path, std::vector<Vertex>& vertices, 
         if (type == "v") {  // Vertex position
             glm::vec3 pos;
             ss >> pos.x >> pos.y >> pos.z;
-            temp_positions.emplace_back(pos);
+            temp_positions.push_back(pos);
         }
         else if (type == "vt") {  // Texture coordinate
             glm::vec2 tex;
             ss >> tex.x >> tex.y;
             tex.y = 1.0f - tex.y;  // Flip Y for OpenGL
-            temp_texCoords.emplace_back(tex);
+            temp_texCoords.push_back(tex);
         }
         else if (type == "vn") {  // Normal
             glm::vec3 normal;
             ss >> normal.x >> normal.y >> normal.z;
-            temp_normals.emplace_back(normal);
+            temp_normals.push_back(normal);
         }
-
         else if (type == "f") {  // Face (triangles & quads)
             std::vector<unsigned int> vIndices, tIndices, nIndices;
             std::string faceVertex;
@@ -114,70 +97,67 @@ bool OBJLoader::LoadOBJ(const std::string& path, std::vector<Vertex>& vertices, 
                 nIndices.push_back(nIndex);
             }
 
-            // Convert quad to two triangles
-            if (vIndices.size() == 4) {
-                std::array<int, 6> quadToTri = { 0, 1, 2, 0, 2, 3 };
-                for (int i : quadToTri) {
-                    Vertex vertex;
-                    vertex.Position = temp_positions[vIndices[i]];
-                    if (!temp_normals.empty() && nIndices[i] < temp_normals.size()) {
-                        vertex.Normal = temp_normals[nIndices[i]];
-                    }
-                    if (!temp_texCoords.empty() && tIndices[i] < temp_texCoords.size()) {
-                        vertex.TexCoords = temp_texCoords[tIndices[i]];
-                    }
+            std::vector<int> quadToTri = { 0, 1, 2, 0, 2, 3 };
+            std::vector<int> faceIndices = (vIndices.size() == 4) ? quadToTri : std::vector<int>{ 0, 1, 2 };
 
-                    auto it = vertexMap.find(vertex);
-                    if (it != vertexMap.end()) {
-                        indices.emplace_back(it->second);
-                    }
-                    else {
-                        unsigned int newIndex = static_cast<unsigned int>(vertices.size());
-                        vertices.emplace_back(vertex);
-                        indices.emplace_back(newIndex);
-                        vertexMap[vertex] = newIndex;
-                    }
+            glm::vec3 faceNormal;
+            if (computeFaceNormals) {
+                // Compute face normal for flat shading
+                glm::vec3 edge1 = temp_positions[vIndices[1]] - temp_positions[vIndices[0]];
+                glm::vec3 edge2 = temp_positions[vIndices[2]] - temp_positions[vIndices[0]];
+                faceNormal = glm::normalize(glm::cross(edge1, edge2));
+            }
+
+            for (int i : faceIndices) {
+                Vertex vertex;
+                vertex.Position = temp_positions[vIndices[i]];
+
+                if (!computeFaceNormals && !temp_normals.empty() && nIndices[i] < temp_normals.size()) {
+                    vertex.Normal = temp_normals[nIndices[i]];  // Use normals from file
+                }
+                else {
+                    vertex.Normal = faceNormal;  // Use computed face normal
+                }
+
+                if (!temp_texCoords.empty() && tIndices[i] < temp_texCoords.size()) {
+                    vertex.TexCoords = temp_texCoords[tIndices[i]];
+                }
+
+                auto it = vertexMap.find(vertex);
+                if (it != vertexMap.end()) {
+                    indices.push_back(it->second);
+                }
+                else {
+                    unsigned int newIndex = static_cast<unsigned int>(vertices.size());
+                    vertices.push_back(vertex);
+                    indices.push_back(newIndex);
+                    vertexMap[vertex] = newIndex;
                 }
             }
-            // Handle normal triangles
-            else if (vIndices.size() == 3) {
-                for (int i = 0; i < 3; i++) {
-                    Vertex vertex;
-                    vertex.Position = temp_positions[vIndices[i]];
-                    if (!temp_normals.empty() && nIndices[i] < temp_normals.size()) {
-                        vertex.Normal = temp_normals[nIndices[i]];
-                    }
-                    if (!temp_texCoords.empty() && tIndices[i] < temp_texCoords.size()) {
-                        vertex.TexCoords = temp_texCoords[tIndices[i]];
-                    }
-
-                    auto it = vertexMap.find(vertex);
-                    if (it != vertexMap.end()) {
-                        indices.emplace_back(it->second);
-                    }
-                    else {
-                        unsigned int newIndex = static_cast<unsigned int>(vertices.size());
-                        vertices.emplace_back(vertex);
-                        indices.emplace_back(newIndex);
-                        vertexMap[vertex] = newIndex;
-                    }
-                }
-            }
-         
         }
     }
 
-    //std::cout << "Final Vertices: " << vertices.size() << std::endl;
-    //for (size_t i = 0; i < vertices.size(); i++) {
-    //    std::cout << i << ": Pos(" << vertices[i].Position.x << ", " << vertices[i].Position.y << ", " << vertices[i].Position.z
-    //        << ") Norm(" << vertices[i].Normal.x << ", " << vertices[i].Normal.y << ", " << vertices[i].Normal.z
-    //        << ") Tex(" << vertices[i].TexCoords.x << ", " << vertices[i].TexCoords.y << ")" << std::endl;
-    //}
+    // If we need vertex normals and they are not in the file, compute them
+    if (computeVertexNormals && temp_normals.empty()) {
+        std::vector<glm::vec3> computedVertexNormals(vertices.size(), glm::vec3(0.0f));
 
-    //std::cout << "Final Indices: " << indices.size() << std::endl;
-    //for (size_t i = 0; i < indices.size(); i += 3) {
-    //    std::cout << "Triangle: " << indices[i] << ", " << indices[i + 1] << ", " << indices[i + 2] << std::endl;
-    //}
+        // Accumulate normals for each vertex
+        for (size_t i = 0; i < indices.size(); i += 3) {
+            unsigned int i0 = indices[i], i1 = indices[i + 1], i2 = indices[i + 2];
+            glm::vec3 normal = glm::normalize(glm::cross(
+                vertices[i1].Position - vertices[i0].Position,
+                vertices[i2].Position - vertices[i0].Position
+            ));
+            computedVertexNormals[i0] += normal;
+            computedVertexNormals[i1] += normal;
+            computedVertexNormals[i2] += normal;
+        }
+
+        // Normalize the accumulated normals
+        for (size_t i = 0; i < vertices.size(); ++i) {
+            vertices[i].Normal = glm::normalize(computedVertexNormals[i]);
+        }
+    }
 
     file.close();
     return true;
