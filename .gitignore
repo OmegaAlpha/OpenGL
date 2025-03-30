@@ -98,6 +98,9 @@ StyleCopReport.xml
 *.svclog
 *.scc
 
+# Whitelist *.obj in OpenGL/res/models/
+!OpenGL/res/models/*.obj
+
 # Chutzpah Test files
 _Chutzpah*
 
